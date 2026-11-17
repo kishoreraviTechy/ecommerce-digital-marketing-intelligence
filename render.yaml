@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: ecommerce-marketing-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ecommerce-marketing-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: "*"
+  - type: web
+    name: ecommerce-marketing-dashboard
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: ecommerce-marketing-api
+          property: url
+databases:
+  - name: ecommerce-marketing-db
+    plan: free
+    databaseName: marketing_intelligence
+    user: marketing_user
