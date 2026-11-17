@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { Activity, ArrowDownRight, ArrowUpRight, BarChart3, Download, Globe2, LayoutDashboard, Megaphone, Plus, Search, Target, Trash2, Wallet } from "lucide-react";
 
 const API = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
@@ -20,7 +21,7 @@ export default function App(){
  async function request(path:string,init?:RequestInit){const res=await fetch(API+path,{...init,headers:{"Content-Type":"application/json",...(init?.headers||{})}});if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d.detail||"Request failed. Check the API service.");}return res.json();}
  async function refresh(){try{setError("");const [d,k]=await Promise.all([request("/api/dashboard"),request("/api/keywords")]);setDashboard(d);setKeywords(k);}catch(e){setError(e instanceof Error?e.message:"Unable to connect to API");}finally{setLoading(false);}}
  useEffect(()=>{refresh();},[]);
- async function addCampaign(e:React.FormEvent){e.preventDefault();setBusy(true);try{await request("/api/campaigns",{method:"POST",body:JSON.stringify({...campaign,spend:Number(campaign.spend||0),revenue:Number(campaign.revenue||0),clicks:Number(campaign.clicks||0),impressions:Number(campaign.impressions||0),conversions:Number(campaign.conversions||0)})});setCampaign({name:"",channel:"Google Ads",spend:"",revenue:"",clicks:"",impressions:"",conversions:""});await refresh();}catch(e){setError(e instanceof Error?e.message:"Could not save campaign");}finally{setBusy(false);}}
+ async function addCampaign(e:FormEvent){e.preventDefault();setBusy(true);try{await request("/api/campaigns",{method:"POST",body:JSON.stringify({...campaign,spend:Number(campaign.spend||0),revenue:Number(campaign.revenue||0),clicks:Number(campaign.clicks||0),impressions:Number(campaign.impressions||0),conversions:Number(campaign.conversions||0)})});setCampaign({name:"",channel:"Google Ads",spend:"",revenue:"",clicks:"",impressions:"",conversions:""});await refresh();}catch(e){setError(e instanceof Error?e.message:"Could not save campaign");}finally{setBusy(false);}}
  async function addKeyword(e:React.FormEvent){e.preventDefault();setBusy(true);try{await request("/api/keywords",{method:"POST",body:JSON.stringify({...keyword,search_volume:Number(keyword.search_volume||0),difficulty:Number(keyword.difficulty||0),position:Number(keyword.position||0)})});setKeyword({keyword:"",search_volume:"",difficulty:"",position:"",url:""});await refresh();}catch(e){setError(e instanceof Error?e.message:"Could not save keyword");}finally{setBusy(false);}}
  async function remove(path:string){if(!confirm("Delete this record?"))return;try{await request(path,{method:"DELETE"});await refresh();}catch(e){setError(e instanceof Error?e.message:"Delete failed");}}
  const campaigns=dashboard?.campaigns||[];
@@ -35,6 +36,6 @@ export default function App(){
  <footer>MarketPulse · E-commerce Marketing Intelligence <span>Metrics are calculated from the campaign data you enter.</span></footer></>}
  </main></div>;
 }
-function Metric({icon,label,value,hint}:{icon:React.ReactNode;label:string;value:string;hint:string}){return <div className="metric-card"><div className="metric-top"><span>{label}</span><i>{icon}</i></div><strong>{value}</strong><small>{hint}</small></div>}
-function Field({label,children}:{label:string;children:React.ReactNode}){return <label className="field"><span>{label}</span>{children}</label>}
+function Metric({icon,label,value,hint}:{icon:ReactNode;label:string;value:string;hint:string}){return <div className="metric-card"><div className="metric-top"><span>{label}</span><i>{icon}</i></div><strong>{value}</strong><small>{hint}</small></div>}
+function Field({label,children}:{label:string;children:ReactNode}){return <label className="field"><span>{label}</span>{children}</label>}
 function Empty({title,text}:{title:string;text:string}){return <div className="empty"><div className="empty-icon"><ArrowUpRight/></div><b>{title}</b><p>{text}</p></div>}
